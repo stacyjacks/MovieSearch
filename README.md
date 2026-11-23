@@ -10,7 +10,7 @@ An Android app for searching movies on [The Movie Database (TMDB)](https://www.t
 
 ## Features
 
-- **Search as you type.** The search starts 400 ms after the user stops typing, so not every keystroke sends a request. An **✕** button clears the query.
+- **Search as you type.** The search starts 400 ms after the user stops typing, so not every keystroke sends a request. An **✕** button clears the query, and the keyboard's Search key or scrolling the results puts the keyboard away.
 - **Results list** with poster, title, year, rating and overview.
 - **Movie detail screen** with backdrop, poster, release date, runtime, rating, genres, overview and production countries.
 - **Loading, empty and error states.** Error messages say what went wrong (no connection, missing or invalid API key, TMDB server problem), and **Retry** is offered whenever retrying can help.

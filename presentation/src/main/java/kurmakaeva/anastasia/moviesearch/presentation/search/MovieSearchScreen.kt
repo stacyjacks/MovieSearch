@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,10 +29,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,6 +78,7 @@ fun MovieSearchScreen(
     onMovieClick: (movieId: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.search_title)) }) },
@@ -96,6 +103,9 @@ fun MovieSearchScreen(
                     }
                 },
                 singleLine = true,
+                // The search runs as you type; the keyboard's Search key just gets the keyboard out of the way.
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Size.large, vertical = Size.small),
@@ -128,7 +138,14 @@ fun MovieSearchScreen(
 
 @Composable
 private fun MovieList(movies: List<Movie>, onMovieClick: (movieId: Int) -> Unit) {
+    val listState = rememberLazyListState()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    // Get the keyboard out of the way as soon as the user starts scrolling through the results.
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (listState.isScrollInProgress) keyboardController?.hide()
+    }
     LazyColumn(
+        state = listState,
         contentPadding = PaddingValues(Size.large),
         verticalArrangement = Arrangement.spacedBy(Size.medium),
     ) {
