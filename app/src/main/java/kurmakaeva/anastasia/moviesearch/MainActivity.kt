@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import kurmakaeva.anastasia.moviesearch.presentation.search.MovieSearchRoute
+import kurmakaeva.anastasia.moviesearch.navigation.MovieSearchNavHost
 import kurmakaeva.anastasia.moviesearch.presentation.theme.MovieSearchTheme
 
 @AndroidEntryPoint
@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MovieSearchTheme {
-                MovieSearchRoute(onMovieClick = {})
+                MovieSearchNavHost()
             }
         }
     }

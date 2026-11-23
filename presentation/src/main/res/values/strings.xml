@@ -7,4 +7,12 @@
     <string name="search_error">Couldn’t load movies. Check your connection.</string>
     <string name="retry">Retry</string>
     <string name="movie_rating">★ %1$.1f</string>
+
+    <string name="back">Back</string>
+    <string name="detail_error">Couldn’t load this movie. Check your connection.</string>
+    <string name="detail_overview">Overview</string>
+    <string name="detail_countries">Production countries</string>
+    <string name="detail_original_title">Original title: %1$s</string>
+    <string name="runtime_hours_minutes">%1$d h %2$d min</string>
+    <string name="runtime_minutes">%1$d min</string>
 </resources>
