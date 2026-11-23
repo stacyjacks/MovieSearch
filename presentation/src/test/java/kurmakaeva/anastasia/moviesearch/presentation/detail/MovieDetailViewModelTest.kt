@@ -7,10 +7,12 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kurmakaeva.anastasia.moviesearch.domain.error.DataError
 import kurmakaeva.anastasia.moviesearch.domain.model.MovieDetail
 import kurmakaeva.anastasia.moviesearch.domain.model.MoviePage
 import kurmakaeva.anastasia.moviesearch.domain.repository.MovieRepository
 import kurmakaeva.anastasia.moviesearch.domain.usecase.GetMovieDetailUseCase
+import kurmakaeva.anastasia.moviesearch.presentation.error.ErrorReason
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -44,15 +46,24 @@ class MovieDetailViewModelTest {
 
     @Test
     fun failure_showsError_andRetrySucceeds() = runTest(dispatcher) {
-        repository.result = Result.failure(IOException("offline"))
+        repository.result = Result.failure(DataError.Network(IOException("offline")))
         val viewModel = createViewModel()
         advanceUntilIdle()
-        assertEquals(MovieDetailUiState.Error, viewModel.uiState.value)
+        assertEquals(MovieDetailUiState.Error(ErrorReason.Network), viewModel.uiState.value)
 
         repository.result = Result.success(MATRIX)
         viewModel.onRetry()
         advanceUntilIdle()
         assertEquals(MovieDetailUiState.Success(MATRIX), viewModel.uiState.value)
+    }
+
+    @Test
+    fun serverError_showsServerErrorReason() = runTest(dispatcher) {
+        repository.result = Result.failure(DataError.Server(code = 503))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(MovieDetailUiState.Error(ErrorReason.Server), viewModel.uiState.value)
     }
 
     private class FakeRepository : MovieRepository {

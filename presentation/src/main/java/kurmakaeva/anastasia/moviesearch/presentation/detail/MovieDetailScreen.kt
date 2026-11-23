@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -41,6 +40,7 @@ import coil3.compose.AsyncImage
 import kurmakaeva.anastasia.moviesearch.domain.model.MovieDetail
 import kurmakaeva.anastasia.moviesearch.presentation.R
 import kurmakaeva.anastasia.moviesearch.presentation.TITLE_MAX_LINES
+import kurmakaeva.anastasia.moviesearch.presentation.component.ErrorState
 import kurmakaeva.anastasia.moviesearch.presentation.component.MoviePoster
 import kurmakaeva.anastasia.moviesearch.presentation.format.formatReleaseDate
 import kurmakaeva.anastasia.moviesearch.presentation.format.formatRuntime
@@ -109,19 +109,7 @@ fun MovieDetailScreen(
             MovieDetailUiState.Loading -> Box(contentModifier, Alignment.Center) {
                 CircularProgressIndicator()
             }
-            MovieDetailUiState.Error -> Column(
-                modifier = contentModifier.padding(Size.extraLarge),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = stringResource(R.string.detail_error),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Spacer(Modifier.height(Size.medium))
-                Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
-            }
+            is MovieDetailUiState.Error -> ErrorState(uiState.reason, onRetry, contentModifier)
             is MovieDetailUiState.Success -> MovieDetailContent(uiState.detail, contentModifier)
         }
     }

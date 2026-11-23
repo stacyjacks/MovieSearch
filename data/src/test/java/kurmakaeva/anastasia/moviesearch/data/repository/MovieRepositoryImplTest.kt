@@ -16,6 +16,7 @@ import kurmakaeva.anastasia.moviesearch.data.remote.TmdbApi
 import kurmakaeva.anastasia.moviesearch.data.remote.model.MovieDetailDto
 import kurmakaeva.anastasia.moviesearch.data.remote.model.MovieDto
 import kurmakaeva.anastasia.moviesearch.data.remote.model.MovieSearchResponseDto
+import kurmakaeva.anastasia.moviesearch.domain.error.DataError
 import kurmakaeva.anastasia.moviesearch.domain.model.MoviePage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -119,7 +120,7 @@ class MovieRepositoryImplTest {
         advanceUntilIdle()
         api.gate!!.complete(Unit)
 
-        assertTrue(searches.awaitAll().all { it.isFailure })
+        assertTrue(searches.awaitAll().all { it.exceptionOrNull() is DataError.Network })
         assertEquals(1, api.searchCalls)
         assertTrue(repository.searchMovies("matrix").isSuccess)
         assertEquals(2, api.searchCalls)

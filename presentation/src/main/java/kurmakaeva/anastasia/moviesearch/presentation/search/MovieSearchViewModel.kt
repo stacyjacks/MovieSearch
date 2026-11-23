@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kurmakaeva.anastasia.moviesearch.domain.usecase.SearchMoviesUseCase
+import kurmakaeva.anastasia.moviesearch.presentation.error.toErrorReason
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -54,7 +55,7 @@ class MovieSearchViewModel @Inject constructor(
                     if (page.movies.isEmpty()) SearchResults.Empty
                     else SearchResults.Success(page.movies)
                 },
-                onFailure = { SearchResults.Error },
+                onFailure = { SearchResults.Error(it.toErrorReason()) },
             )
             _uiState.update { it.copy(results = results) }
         }

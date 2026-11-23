@@ -15,6 +15,12 @@ val localProperties = Properties().apply {
 val tmdbApiKey: String = localProperties.getProperty("TMDB_API_KEY")
     ?: providers.environmentVariable("TMDB_API_KEY").orNull
     ?: ""
+if (tmdbApiKey.isBlank()) {
+    logger.warn(
+        "w: TMDB_API_KEY is not set. Add it to local.properties (see README.md); " +
+            "until then every TMDB request fails and the app shows an 'invalid API key' error."
+    )
+}
 
 android {
     namespace = "kurmakaeva.anastasia.moviesearch.data"

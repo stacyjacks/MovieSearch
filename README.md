@@ -13,7 +13,7 @@ An Android app for searching movies on [The Movie Database (TMDB)](https://www.t
 - **Search as you type.** The search starts 400 ms after the user stops typing, so not every keystroke sends a request. An **✕** button clears the query.
 - **Results list** with poster, title, year, rating and overview.
 - **Movie detail screen** with backdrop, poster, release date, runtime, rating, genres, overview and production countries.
-- **Loading, empty and error states**, with **Retry**.
+- **Loading, empty and error states.** Error messages say what went wrong (no connection, missing or invalid API key, TMDB server problem), and **Retry** is offered whenever retrying can help.
 - **In-memory cache for search results.** Repeating a query within 5 minutes doesn't use the network.
 - **Request sharing.** Identical searches started at the same time cause a single HTTP request.
 - **Cancellation.** Typing a new query cancels the previous search, including its HTTP request, and a stale result is never shown.
@@ -40,6 +40,8 @@ An Android app for searching movies on [The Movie Database (TMDB)](https://www.t
    TMDB_API_KEY=your_api_key_here
    ```
    As an alternative, the build also reads a `TMDB_API_KEY` environment variable (useful for CI).
+
+   If no key is set, the build prints a warning, and the app shows a "TMDB API key is missing or invalid" message instead of results.
 3. Open the project in Android Studio (2026.2 or newer) and run the `app` configuration, or from the command line:
    ```bash
    ./gradlew :app:installDebug
@@ -66,7 +68,7 @@ graph LR
 | `app` | Application | The composition root: `Application` class (Hilt, Coil image loader), `MainActivity`, and the `NavHost` that connects the screens. |
 
 Key rules:
-- **`domain` depends on nothing.** `presentation` and `data` both depend on `domain`, never on each other. Data errors reach the ViewModels as `Result.failure`, not as exceptions.
+- **`domain` depends on nothing.** `presentation` and `data` both depend on `domain`, never on each other. Data errors reach the ViewModels as `Result.failure` holding a `DataError` (`Network`, `InvalidApiKey`, `Server` or `Unknown`), not as exceptions. The data layer translates networking exceptions into these (`ErrorMapper.kt`), and the UI turns them into a message and decides whether to offer Retry (`ErrorReason`).
 - **Screens don't know about each other.** Each screen offers a `NavGraphBuilder` function, such as `movieSearchScreen(onMovieClick)`. The app's `MovieSearchNavHost` decides that tapping a movie opens its details.
 - **`app` depends on `data` and `domain`** only because Hilt generates the app-wide dependency graph inside `app`, and it needs every module that contributes classes to that graph.
 
@@ -169,7 +171,7 @@ These tests were checked by deliberately breaking the code: removing the locks, 
 
 - **ViewModel and repository tests** run on `StandardTestDispatcher`, a fake clock. Timing (the 400 ms wait, slow responses, cancellation) is controlled with `advanceTimeBy` and `advanceUntilIdle`, so the tests are deterministic and fast.
 - **Real-thread tests** (`Dispatchers.Default`) cover thread safety, which a single-threaded fake clock can't show.
-- **HTTP tests** run against a local `MockWebServer`: request URLs, the API key, JSON parsing and cancellation.
+- **HTTP tests** run against a local `MockWebServer`: request URLs, the API key, JSON parsing, cancellation, and error mapping (e.g. TMDB's 401 becomes an "invalid API key" error).
 
 ## Possible improvements
 

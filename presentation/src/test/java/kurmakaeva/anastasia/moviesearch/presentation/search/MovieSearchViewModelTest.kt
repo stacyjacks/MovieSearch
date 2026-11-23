@@ -10,13 +10,16 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kurmakaeva.anastasia.moviesearch.domain.error.DataError
 import kurmakaeva.anastasia.moviesearch.domain.model.Movie
 import kurmakaeva.anastasia.moviesearch.domain.model.MovieDetail
 import kurmakaeva.anastasia.moviesearch.domain.model.MoviePage
 import kurmakaeva.anastasia.moviesearch.domain.repository.MovieRepository
 import kurmakaeva.anastasia.moviesearch.domain.usecase.SearchMoviesUseCase
+import kurmakaeva.anastasia.moviesearch.presentation.error.ErrorReason
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import java.io.IOException
@@ -60,15 +63,26 @@ class MovieSearchViewModelTest {
 
     @Test
     fun failure_showsError_andRetrySucceeds() = runTest(dispatcher) {
-        repository.result = Result.failure(IOException("offline"))
+        repository.result = Result.failure(DataError.Network(IOException("offline")))
         viewModel.onQueryChange("matrix")
         advanceUntilIdle()
-        assertEquals(SearchResults.Error, viewModel.uiState.value.results)
+        assertEquals(SearchResults.Error(ErrorReason.Network), viewModel.uiState.value.results)
 
         repository.result = Result.success(PAGE)
         viewModel.onRetry()
         advanceUntilIdle()
         assertEquals(SearchResults.Success(listOf(MATRIX)), viewModel.uiState.value.results)
+    }
+
+    @Test
+    fun invalidApiKey_showsItsOwnError_withoutRetry() = runTest(dispatcher) {
+        repository.result = Result.failure(DataError.InvalidApiKey())
+        viewModel.onQueryChange("matrix")
+        advanceUntilIdle()
+
+        val error = viewModel.uiState.value.results as SearchResults.Error
+        assertEquals(ErrorReason.InvalidApiKey, error.reason)
+        assertFalse(error.reason.canRetry)
     }
 
     @Test

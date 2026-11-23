@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kurmakaeva.anastasia.moviesearch.domain.usecase.GetMovieDetailUseCase
+import kurmakaeva.anastasia.moviesearch.presentation.error.toErrorReason
 
 /** The movie id comes from the navigation route and is passed in via Hilt assisted injection. */
 @HiltViewModel(assistedFactory = MovieDetailViewModel.Factory::class)
@@ -42,7 +43,7 @@ class MovieDetailViewModel @AssistedInject constructor(
             _uiState.value = MovieDetailUiState.Loading
             _uiState.value = getMovieDetail(movieId).fold(
                 onSuccess = { MovieDetailUiState.Success(it) },
-                onFailure = { MovieDetailUiState.Error },
+                onFailure = { MovieDetailUiState.Error(it.toErrorReason()) },
             )
         }
     }

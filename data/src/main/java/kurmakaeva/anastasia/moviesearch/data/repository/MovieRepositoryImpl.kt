@@ -9,6 +9,7 @@ import kurmakaeva.anastasia.moviesearch.data.cache.SearchCacheKey
 import kurmakaeva.anastasia.moviesearch.data.concurrency.InFlightRequests
 import kurmakaeva.anastasia.moviesearch.data.di.ApplicationScope
 import kurmakaeva.anastasia.moviesearch.data.di.IoDispatcher
+import kurmakaeva.anastasia.moviesearch.data.mapper.toDataError
 import kurmakaeva.anastasia.moviesearch.data.mapper.toDomain
 import kurmakaeva.anastasia.moviesearch.data.remote.TmdbApi
 import kurmakaeva.anastasia.moviesearch.domain.model.MovieDetail
@@ -53,13 +54,16 @@ internal class MovieRepositoryImpl @Inject constructor(
         safeApiCall { api.getMovieDetail(movieId).toDomain() }
     }
 
-    /** Like runCatching, but lets coroutine cancellation propagate instead of turning it into a failure. */
+    /**
+     * Like runCatching, but failures become a [kurmakaeva.anastasia.moviesearch.domain.error.DataError],
+     * and coroutine cancellation propagates instead of turning into a failure.
+     */
     private inline fun <T> safeApiCall(block: () -> T): Result<T> =
         try {
             Result.success(block())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(e.toDataError())
         }
 }

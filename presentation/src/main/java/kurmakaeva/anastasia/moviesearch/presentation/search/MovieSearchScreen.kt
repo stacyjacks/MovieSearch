@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kurmakaeva.anastasia.moviesearch.domain.model.Movie
 import kurmakaeva.anastasia.moviesearch.presentation.R
 import kurmakaeva.anastasia.moviesearch.presentation.SUMMARY_MAX_LINES
+import kurmakaeva.anastasia.moviesearch.presentation.component.ErrorState
 import kurmakaeva.anastasia.moviesearch.presentation.component.MoviePoster
 import kurmakaeva.anastasia.moviesearch.presentation.theme.ComponentSize
 import kurmakaeva.anastasia.moviesearch.presentation.theme.MovieSearchTheme
@@ -114,11 +115,8 @@ fun MovieSearchScreen(
                             uiState.query.trim())
                     )
                 }
-                SearchResults.Error -> {
-                    CenteredMessage(stringResource(R.string.search_error)) {
-                        Spacer(Modifier.height(Size.medium))
-                        Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
-                    }
+                is SearchResults.Error -> {
+                    ErrorState(results.reason, onRetry)
                 }
                 is SearchResults.Success -> {
                     MovieList(results.movies, onMovieClick)
