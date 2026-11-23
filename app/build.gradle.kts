@@ -41,11 +41,13 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(project(":presentation"))
     // Not used directly by app code, but Hilt generates the app-wide component here,
     // so every module that contributes bindings or injected types must be on app's classpath.
     implementation(project(":data"))
     implementation(project(":domain"))
 
+    implementation(libs.coil.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
