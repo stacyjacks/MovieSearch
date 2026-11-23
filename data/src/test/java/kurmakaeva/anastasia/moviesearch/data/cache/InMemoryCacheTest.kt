@@ -1,11 +1,17 @@
 package kurmakaeva.anastasia.moviesearch.data.cache
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class InMemoryCacheTest {
     private val time = TestTimeSource()
@@ -49,5 +55,37 @@ class InMemoryCacheTest {
         assertEquals("1", cache.get("a"))
         assertNull(cache.get("b"))
         assertEquals("3", cache.get("c"))
+    }
+
+    /**
+     * The cache is read on the main thread and written from IO threads. LinkedHashMap in access order
+     * mutates on every get(), so without synchronization this fails with ConcurrentModificationException,
+     * NPEs or corrupted entries.
+     */
+    @Test
+    fun concurrentReadsAndWritesFromManyThreads_staySafe() = runBlocking {
+        val shared = InMemoryCache<Int, String>(ttl = 5.minutes, maxEntries = 50)
+        val errors = ConcurrentLinkedQueue<Throwable>()
+
+        List(8) { worker ->
+            launch(Dispatchers.Default) {
+                repeat(20_000) { i ->
+                    val key = (i * 31 + worker) % 100
+                    try {
+                        if (i % 3 == 0) {
+                            shared.put(key, "value-$key")
+                        } else {
+                            val value = shared.get(key)
+                            if (value != null && value != "value-$key") error("key $key returned $value")
+                        }
+                    } catch (t: Throwable) {
+                        errors += t
+                    }
+                }
+            }
+        }.joinAll()
+
+        assertTrue("concurrent access failed: ${errors.firstOrNull()}", errors.isEmpty())
+        assertTrue("LRU bound exceeded", (0 until 100).count { shared.get(it) != null } <= 50)
     }
 }
