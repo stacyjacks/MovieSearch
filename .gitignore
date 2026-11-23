@@ -1,12 +1,14 @@
 # Gradle files
 .gradle/
 build/
+.kotlin/
 
-# Local configuration file (sdk path, etc)
+# Local configuration file (sdk path, TMDB API key, etc.) - never commit
 local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
 
 # Android Studio generated files and folders
 captures/
